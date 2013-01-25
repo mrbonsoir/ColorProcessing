@@ -1,0 +1,109 @@
+'''        
+Created on 16.01.2013
+here I want to display the chromaticity diagram of CIE 1931
+@author: gerjer
+'''
+
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+#from colormath.color_objects import XYZColor, RGBColor, LCHabColor, SpectralColor, LabColor
+
+def conversionRGB2XYZ(dataRGB):
+    """
+    RGB to XYZ conversion. Expects 0-255 RGB values.
+    Also expect 3xn data to be converted and gives XYZ as 3xN
+    For now sRGB and D50 is assumed to be the basis
+    """
+        
+    #print dataRGB[0,:]
+    # data are assumed to in sRGB colorspace
+    if dataRGB[0,:].all() > 0.04045:
+        dataRGB[0,:] = math.pow((dataRGB[0,:] + 0.055) / 1.055, 2.4)
+    else:
+        dataRGB[0,:] = dataRGB[0,:] / 12.92
+        
+    if dataRGB[1,:].all() > 0.04045:
+        dataRGB[1,:] = math.pow((dataRGB[1,:] + 0.055) / 1.055, 2.4)
+    else:
+        dataRGB[1,:] = dataRGB[1,:] / 12.92
+    
+    if dataRGB[2,:].all() > 0.04045:
+        dataRGB[2,:] = math.pow((dataRGB[2,:] + 0.055) / 1.055, 2.4)
+    else:
+        dataRGB[2,:] = dataRGB[2,:] / 12.92
+    
+    # do the dataXYZ = M x dataRGB for conversion for illuminant D50
+    M = ([[0.4360747,  0.3850649,  0.1430804],[0.2225045,  0.7168786,  0.0606169],[0.0139322,  0.0971045,  0.7141733]])
+    
+    dataXYZ = np.dot(M, dataRGB)
+    return dataXYZ
+
+def create3Dgrid(vec):
+    '''
+    The function creates three vectors having the same size nbLines x 1
+    '''
+    # corresponding to 3D coordinates.
+    [u,v]=np.meshgrid(vec,vec)
+    w = np.tile(np.ones(np.shape(u)),((np.size(vec)),1))
+    u = np.tile(np.reshape(u,(np.size(u),1)),(np.size(vec),1)) 
+    v = np.tile(np.reshape(v,(np.size(v),1)),(np.size(vec),1))
+               
+    for ii in np.arange(0,np.size(vec)):
+        block = w[:,ii] * vec[ii]
+        w[:,ii] = np.transpose(block)
+    w = np.reshape(np.transpose(w),(np.size(u),1))
+    return u,v,w
+
+def displayChroma_xy(x,y,titleFigure):
+    '''
+    display visual locus
+    '''
+    data = np.loadtxt("C:/WorkInMatlabInFIRST/DataTest/CieIlluminant/AllData_xyz1931.txt")
+    xL = data[:,1] / (data[:,1] + data[:,2] + data[:,3])
+    yL = data[:,2] / (data[:,1] + data[:,2] + data[:,3])        
+    plt.plot(xL, yL,'k-')
+    plt.plot(xL[[0, xL.size-1]], yL[[0, yL.size-1]],'k:')
+
+    # display ACES color space boundaries
+    ACES_x = np.array([0.7347, 0, 0.0001])
+    ACES_y = np.array([0.26539, 1, -0.077])
+    indexVal = np.hstack([np.arange(ACES_x.size), 0])
+    plt.plot(ACES_x[indexVal], ACES_y[indexVal],'-k')
+    plt.plot(ACES_x[0], ACES_y[0],'or',ACES_x[1], ACES_y[1],'og',ACES_x[2], ACES_y[2],'ob')
+
+    # the data to be plotted 
+    plt.plot(x,y,'r.')
+    
+    # some options
+    plt.xlabel('chromaticity x')
+    plt.ylabel('chromaticity y')
+    plt.title(titleFigure)
+    plt.grid(True)
+    plt.axis([-0.1, 1.1, -0.1, 1.1])
+    plt.show()
+
+def conversionXYZ2xyz(XYZ):
+    sumXYZ = XYZ[0,:]+XYZ[1,:]+XYZ[2,:]
+    ind = np.nonzero(sumXYZ > 0)
+    print ind
+    sumXYZ = np.tile(sumXYZ,(3,1))
+    xyz    = XYZ[:,ind] / sumXYZ[:,ind]
+    return xyz
+
+def main():
+    # And now we do something
+    vecGrid = np.hstack([np.arange(0,255,255),255])
+    print vecGrid
+    r,g,b = create3Dgrid(vecGrid)
+    rgb = np.transpose(np.hstack([r,g,b]))/255.
+    print rgb
+    XYZ = conversionRGB2XYZ(rgb)
+    xyz = conversionXYZ2xyz(XYZ)
+    print xyz
+    titleF = "Ceci est un test de figure"
+    displayChroma_xy(xyz[0,:],xyz[1,:],titleF)
+        
+
+main()
+print "hello I'm back again!"
