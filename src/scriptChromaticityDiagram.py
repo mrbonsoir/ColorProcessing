@@ -21,6 +21,8 @@ displayChroma_xy(xyz[0,:],xyz[1,:],'Une bien belle figure')
 print "hello I'm back again!"
 
 
+# COMPLETE THE DEMO SCRIPT
+
 '''
 data = np.loadtxt("AllData_xyz1964.txt")
 fileNameOutput = "tempData"

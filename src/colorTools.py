@@ -109,6 +109,8 @@ def displayChroma_xy(x,y,titleFigure):
     plt.grid(True)
     plt.axis([-0.1, 1.1, -0.1, 1.1])
     plt.show()
+    return 0
+
 
 def conversionXYZ2xyz(XYZ):
     sumXYZ = XYZ[0,:]+XYZ[1,:]+XYZ[2,:]
@@ -117,6 +119,28 @@ def conversionXYZ2xyz(XYZ):
     sumXYZ = np.tile(sumXYZ,(3,1))
     xyz    = XYZ[:,ind] / sumXYZ[:,ind]
     return xyz
+
+def conversionXYZ2Lab(XYZ): # TO BE DONE
+    Lab = np.ones(np.shape(XYZ))
+    return Lab
+
+def displayChroma_ab(a,b,titleFigure): # TO BE DONE
+    '''
+        Display ab data in an CIE ab diagram 
+    '''
+    # the data to be plotted 
+    plt.plot(a,b,'r.')
+    
+    
+    # some options
+    plt.xlabel('chromaticity a')
+    plt.ylabel('chromaticity b')
+    plt.title(titleFigure)
+    plt.grid(True)
+    plt.axis([-180, 180, -180, 180])
+    plt.show()
+    return 0
+
 
 allData_nmXYZxy1931 = np.array([[780,    0.0000420,    0.0000150,    0.0000000,    0.7346900],
 [380,    0.0013680,    0.0000390,    0.0064500,    0.1741100],
