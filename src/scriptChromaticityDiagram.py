@@ -1,6 +1,9 @@
 '''        
 Created on 16.01.2013
 here I want to display the chromaticity diagram of CIE 1931
+
+I did not find a ways to close all the figure window when starting the script or to refresh only 
+the selected figure.
 '''
 
 from colorTools import *
@@ -9,19 +12,32 @@ import numpy as np
 import math
 import sys
 
-## And now we do something
+# Create a 3D grid of RGB data
 vecGrid = np.hstack([np.arange(0,255,50),255])
-# print vecGrid
 r,g,b = create3Dgrid(vecGrid)
 rgb = np.transpose(np.hstack([r,g,b]))/255.
+
+# Convert the RGB data to XYZ
 XYZ = conversionRGB2XYZ(rgb)
+
+# Convert the XYZ data to xyz 
 xyz = conversionXYZ2xyz(XYZ)
-print 'size of the data converted: '+str(np.shape(xyz)) 
-displayChroma_xy(xyz[0,:],xyz[1,:],'Une bien belle figure')
-print "hello I'm back again!"
+print 'size of the data converted: '+str(np.shape(xyz))
+
+# Display the chromaticity data xy 
+displayChroma_xy(xyz[0,:],xyz[1,:],'Une bien belle figure CIE xy',1)
+
+# Convert the XYZ data to Lab 
+Lab = conversionXYZ2Lab(XYZ, 'D50_31')
+
+# Display the chromaticity ab 
+displayChroma_ab(Lab[1,:],Lab[2,:],'Une bien belle figure CIE ab',2)
+
+# Don't forget this line to show all the figures
+plt.show()
 
 
-# COMPLETE THE DEMO SCRIPT
+
 
 '''
 data = np.loadtxt("AllData_xyz1964.txt")

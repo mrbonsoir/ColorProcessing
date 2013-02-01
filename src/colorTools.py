@@ -54,13 +54,14 @@ def create3Dgrid(vec):
     w = np.reshape(np.transpose(w),(np.size(u),1))
     return u,v,w
 
-def displayChroma_xy(x,y,titleFigure):
+def displayChroma_xy(x,y,titleFigure,numberFigure):
     '''
     Display xy data and the visual locus and some standard color gamut. 
     sRGB, Rec709, DCIP3,ACES
     check here for xyz values http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html#Specifications
     
     '''
+    plt.figure(numberFigure) 
     # choice of the CMF function to display the locus boundaries
     CMFs = 'CIE1931'
     if CMFs=='CIE1931':
@@ -76,7 +77,6 @@ def displayChroma_xy(x,y,titleFigure):
     yL = data[:,2] / (data[:,1] + data[:,2] + data[:,3])        
     plt.plot(xL, yL,'k-')
     plt.plot(xL[[0, xL.size-1]], yL[[0, yL.size-1]],'k:')
-
 
     # display ACES color space boundaries
     ACES_x = np.array([0.7347, 0, 0.0001])
@@ -108,9 +108,9 @@ def displayChroma_xy(x,y,titleFigure):
     plt.title(titleFigure+' '+CMFs)
     plt.grid(True)
     plt.axis([-0.1, 1.1, -0.1, 1.1])
-    plt.show()
-    return 0
-
+    plt.draw()
+    
+    return 1
 
 def conversionXYZ2xyz(XYZ):
     sumXYZ = XYZ[0,:]+XYZ[1,:]+XYZ[2,:]
@@ -120,26 +120,90 @@ def conversionXYZ2xyz(XYZ):
     xyz    = XYZ[:,ind] / sumXYZ[:,ind]
     return xyz
 
-def conversionXYZ2Lab(XYZ): # TO BE DONE
+def conversionXYZ2Lab(XYZ, XYZw): 
+    '''
+    XYZ are the 3 x N data to be converted
+    XYZw is the XYZ of the white point reference for the transformation,
+    if XYZr = 'A_31' then it is the XYZ of illuminant A and CMF CIE1931
+    if XYTr = D55_64' then it is the XYZ of illuminant D55 and CMF CIE1964
+    '''
     Lab = np.ones(np.shape(XYZ))
+    
+    # set the white point
+    if XYZw == 'A_31':
+        XYZr = np.array([109.85, 100, 35.58])
+    elif XYZw == 'A_64':
+        XYZr = np.array([111.14, 100, 35.20])
+    elif XYZw == 'D65_31':
+        XYZr = np.array([95.04, 100, 108.88])
+    elif XYZw == 'D65_64':
+        XYZr = np.array([94.81, 100, 107.32])
+    elif XYZw == 'C_31':
+        XYZr = np.array([98.07, 100, 118.22])
+    elif XYZw == 'C_64':
+        XYZr = np.array([97.29, 100, 116.14])
+    elif XYZw == 'D50_31':
+        XYZr = np.array([96.42, 100, 82.51])
+    elif XYZw == 'D50_64':
+        XYZr = np.array([96.72, 100, 81.43])
+    elif XYZw == 'D55_31':
+        XYZr = np.array([95.68, 100, 92.14])
+    elif XYZw == 'D55_64':
+        XYZr = np.array([95.80, 100, 90.93])
+    elif XYZw == 'D75_31':
+        XYZr = np.array([94.97, 100, 122.61])
+    elif XYZw == 'D75_64':
+        XYZr = np.array([94.42, 100, 120.64])
+    elif XYZw == 'Uniform':
+        XYZr = np.array([100, 100, 100])
+    elif XYZw == 'CIC2010':
+        XYZr = np.array([99.8082, 100, 99.5881])
+    else: # a special white point 
+        XYZr = np.array([122.9, 127.4, 98.5])
+         
+    # reshape the vector of white point
+    XYZr = np.tile(XYZr,XYZ.shape[1]).reshape(XYZ.shape[1],XYZ.shape[0]).transpose()
+    varXYZrr = XYZ / XYZr
+       
+    varXYZr = varXYZrr   
+    varXYZr[0,:] = CIELabConversionFunction(varXYZr[0,:])
+    varXYZr[1,:] = CIELabConversionFunction(varXYZr[1,:])
+    varXYZr[2,:] = CIELabConversionFunction(varXYZr[2,:])
+    
+    # L,a,b
+    for i in np.arange(varXYZr.shape[1]):
+        Lab[0,i] = (116 * varXYZr[1,i])-16
+        Lab[1,i] = 500*(varXYZr[0,i]-varXYZr[1,i])
+        Lab[2,i] = 200*(varXYZr[1,i]-varXYZr[2,i])
+        
+    #print np.vstack((XYZr, XYZ, varXYZr,varXYZrr, Lab))
     return Lab
+        
+def CIELabConversionFunction(x):
+    out = np.ones(x.shape)
+    for i in np.arange(x.size):
+        if (x[i] <= 0.008856):
+            out[i] =7.787*x[i] + 16./116.
+        else:
+            out[i] = x[i]**(1/3)  
+    return out
 
-def displayChroma_ab(a,b,titleFigure): # TO BE DONE
+def displayChroma_ab(a,b,titleFigure,numberFigure): # TO BE DONE
     '''
         Display ab data in an CIE ab diagram 
     '''
+    plt.figure(numberFigure)
     # the data to be plotted 
     plt.plot(a,b,'r.')
-    
-    
+        
     # some options
     plt.xlabel('chromaticity a')
     plt.ylabel('chromaticity b')
     plt.title(titleFigure)
     plt.grid(True)
     plt.axis([-180, 180, -180, 180])
-    plt.show()
-    return 0
+    plt.draw()
+    return 1
 
 
 allData_nmXYZxy1931 = np.array([[780,    0.0000420,    0.0000150,    0.0000000,    0.7346900],
