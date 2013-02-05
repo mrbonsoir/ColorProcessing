@@ -13,12 +13,21 @@ import math
 import sys
 
 # Create a 3D grid of RGB data
+
 vecGrid = np.hstack([np.arange(0,255,50),255])
-r,g,b = create3Dgrid(vecGrid)
-rgb = np.transpose(np.hstack([r,g,b]))/255.
+R,G,B = create3Dgrid(vecGrid)
+RGB = np.transpose(np.hstack([R,G,B]))/255
+print RGB, np.shape(RGB)
+
+RGB = np.array([[255,  255,   255,     0,   255,     0,     0, 50],
+                [255,  255,     0,   255,     0,   255,     0, 150],
+                [255,    0,   255,   255,     0,     0,   255, 50]])
+print RGB, np.shape(RGB)
+
 
 # Convert the RGB data to XYZ
-XYZ = conversionRGB2XYZ(rgb)
+XYZ = conversionRGB2XYZ(RGB)
+print XYZ, np.shape(XYZ)
 
 # Convert the XYZ data to xyz 
 xyz = conversionXYZ2xyz(XYZ)
@@ -28,9 +37,10 @@ print 'size of the data converted: '+str(np.shape(xyz))
 displayChroma_xy(xyz[0,:],xyz[1,:],'Une bien belle figure CIE xy',1)
 
 # Convert the XYZ data to Lab 
-Lab = conversionXYZ2Lab(XYZ, 'D50_31')
+Lab = conversionXYZ2Lab(XYZ*100, 'D50_31')
 
 # Display the chromaticity ab 
+print Lab
 displayChroma_ab(Lab[1,:],Lab[2,:],'Une bien belle figure CIE ab',2)
 
 # Don't forget this line to show all the figures

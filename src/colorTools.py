@@ -14,23 +14,20 @@ def conversionRGB2XYZ(dataRGB):
     Also expect 3xn data to be converted and gives XYZ as 3xN
     For now sRGB and D50 is assumed to be the basis
     """
+    
+    if dataRGB.max() > 1:
+        dataRGB = dataRGB/255.
         
     # data are assumed to in sRGB colorspace
-    if dataRGB[0,:].all() > 0.04045:
-        dataRGB[0,:] = math.pow((dataRGB[0,:] + 0.055) / 1.055, 2.4)
-    else:
-        dataRGB[0,:] = dataRGB[0,:] / 12.92
-        
-    if dataRGB[1,:].all() > 0.04045:
-        dataRGB[1,:] = math.pow((dataRGB[1,:] + 0.055) / 1.055, 2.4)
-    else:
-        dataRGB[1,:] = dataRGB[1,:] / 12.92
     
-    if dataRGB[2,:].all() > 0.04045:
-        dataRGB[2,:] = math.pow((dataRGB[2,:] + 0.055) / 1.055, 2.4)
-    else:
-        dataRGB[2,:] = dataRGB[2,:] / 12.92
-    
+    for j in np.arange(0,3):
+        ind = (dataRGB[j,:] > 0.04045).ravel()
+        for i in np.arange(0,np.size(ind)):
+            if dataRGB[j,i] > 0.04045:
+                dataRGB[j,i] = math.pow((dataRGB[j,i] + 0.055) / 1.055, 2.4)
+            else:
+                dataRGB[j,i] = dataRGB[j,i] / 12.92
+   
     # do the dataXYZ = M x dataRGB for conversion for ill D50
     M = ([[0.4360747,  0.3850649,  0.1430804],
           [0.2225045,  0.7168786,  0.0606169],
@@ -162,31 +159,32 @@ def conversionXYZ2Lab(XYZ, XYZw):
         XYZr = np.array([122.9, 127.4, 98.5])
          
     # reshape the vector of white point
-    XYZr = np.tile(XYZr,XYZ.shape[1]).reshape(XYZ.shape[1],XYZ.shape[0]).transpose()
-    varXYZrr = XYZ / XYZr
-       
-    varXYZr = varXYZrr   
+    XYZr         = np.tile(XYZr,XYZ.shape[1]).reshape(XYZ.shape[1],XYZ.shape[0]).transpose()
+    varXYZr      = XYZ / XYZr
+    
     varXYZr[0,:] = CIELabConversionFunction(varXYZr[0,:])
     varXYZr[1,:] = CIELabConversionFunction(varXYZr[1,:])
     varXYZr[2,:] = CIELabConversionFunction(varXYZr[2,:])
+    print varXYZr.dtype, varXYZr[0,2]
     
     # L,a,b
     for i in np.arange(varXYZr.shape[1]):
-        Lab[0,i] = (116 * varXYZr[1,i])-16
-        Lab[1,i] = 500*(varXYZr[0,i]-varXYZr[1,i])
-        Lab[2,i] = 200*(varXYZr[1,i]-varXYZr[2,i])
+        Lab[0,i] = (116 * varXYZr[1,i]) - 16
+        Lab[1,i] = 500 * (varXYZr[0,i] - varXYZr[1,i])
+        Lab[2,i] = 200 * (varXYZr[1,i] - varXYZr[2,i])
         
-    #print np.vstack((XYZr, XYZ, varXYZr,varXYZrr, Lab))
     return Lab
         
 def CIELabConversionFunction(x):
-    out = np.ones(x.shape)
+    out = np.zeros(np.shape(x))
     for i in np.arange(x.size):
         if (x[i] <= 0.008856):
-            out[i] =7.787*x[i] + 16./116.
+            out[i] = 7.787*x[i] + 16./116.
         else:
-            out[i] = x[i]**(1/3)  
+            out[i] = x[i]**(1/3)
+            print out,x[i]
     return out
+
 
 def displayChroma_ab(a,b,titleFigure,numberFigure): # TO BE DONE
     '''
