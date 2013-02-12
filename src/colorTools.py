@@ -18,21 +18,24 @@ def conversionRGB2XYZ(dataRGB):
     if dataRGB.max() > 1:
         dataRGB = dataRGB/255.
         
-    # data are assumed to in sRGB colorspace
-    
-    for j in np.arange(0,3):
-        ind = (dataRGB[j,:] > 0.04045).ravel()
-        for i in np.arange(0,np.size(ind)):
-            if dataRGB[j,i] > 0.04045:
-                dataRGB[j,i] = math.pow((dataRGB[j,i] + 0.055) / 1.055, 2.4)
+    # To avoid having a point with [X Y Z] = [0 0 0] replace this vector by something
+    # just above 0
+    sumRGB = dataRGB[0,:] + dataRGB[1,:] + dataRGB[2,:]    
+    ind = np.nonzero(sumRGB == 0)
+    dataRGB[:,ind] = 0.000001
+
+    for i in np.arange(0,np.shape(dataRGB)[0]):
+        for j in np.arange(0,np.shape(dataRGB)[1]):
+            if dataRGB[i,j] > 0.04045:
+                dataRGB[i,j] = math.pow((dataRGB[i,j] + 0.055) / 1.055, 2.4)
             else:
-                dataRGB[j,i] = dataRGB[j,i] / 12.92
+                dataRGB[i,j] = dataRGB[i,j] / 12.92
    
-    # do the dataXYZ = M x dataRGB for conversion for ill D50
+    # do the dataXYZ = M x dataRGB for conversion for illuminant D50
     M = ([[0.4360747,  0.3850649,  0.1430804],
           [0.2225045,  0.7168786,  0.0606169],
           [0.0139322,  0.0971045,  0.7141733]])
-    dataXYZ = np.dot(M, dataRGB)
+    dataXYZ = np.dot(M, dataRGB) * 100
     return dataXYZ
 
 def create3Dgrid(vec):
@@ -110,11 +113,11 @@ def displayChroma_xy(x,y,titleFigure,numberFigure):
     return 1
 
 def conversionXYZ2xyz(XYZ):
-    sumXYZ = XYZ[0,:]+XYZ[1,:]+XYZ[2,:]
-    ind = np.nonzero(sumXYZ > 0)
-    #print ind
-    sumXYZ = np.tile(sumXYZ,(3,1))
-    xyz    = XYZ[:,ind] / sumXYZ[:,ind]
+    sumXYZ     = XYZ[0,:] + XYZ[1,:] + XYZ[2,:]
+    ind        = np.nonzero(sumXYZ > 0) # check that no element is divided by 0
+    sumXYZ     = np.tile(sumXYZ,(3,1))
+    xyz        = sumXYZ
+    xyz[:,ind] = XYZ[:,ind] / sumXYZ[:,ind]
     return xyz
 
 def conversionXYZ2Lab(XYZ, XYZw): 
@@ -161,32 +164,23 @@ def conversionXYZ2Lab(XYZ, XYZw):
     # reshape the vector of white point
     XYZr         = np.tile(XYZr,XYZ.shape[1]).reshape(XYZ.shape[1],XYZ.shape[0]).transpose()
     varXYZr      = XYZ / XYZr
-    
-    varXYZr[0,:] = CIELabConversionFunction(varXYZr[0,:])
-    varXYZr[1,:] = CIELabConversionFunction(varXYZr[1,:])
-    varXYZr[2,:] = CIELabConversionFunction(varXYZr[2,:])
-    print varXYZr.dtype, varXYZr[0,2]
-    
-    # L,a,b
-    for i in np.arange(varXYZr.shape[1]):
-        Lab[0,i] = (116 * varXYZr[1,i]) - 16
-        Lab[1,i] = 500 * (varXYZr[0,i] - varXYZr[1,i])
-        Lab[2,i] = 200 * (varXYZr[1,i] - varXYZr[2,i])
-        
+
+    # do the CIELab conversion function    
+    for i in np.arange(0,np.shape(varXYZr)[0]):
+        for j in np.arange(0,np.shape(varXYZr)[1]):
+            if (varXYZr[i,j] <= 0.008856):
+                varXYZr[i,j] = 7.787*varXYZr[i,j] + 16.0/116.0
+            else:
+                varXYZr[i,j] = math.pow(varXYZr[i,j],(1.0/3.0))
+
+    # last step to obtain the CIELlab values
+    Lab[0,:] = (116 * varXYZr[1,:]) - 16
+    Lab[1,:] = 500 * (varXYZr[0,:] - varXYZr[1,:])
+    Lab[2,:] = 200 * (varXYZr[1,:] - varXYZr[2,:])
+
     return Lab
-        
-def CIELabConversionFunction(x):
-    out = np.zeros(np.shape(x))
-    for i in np.arange(x.size):
-        if (x[i] <= 0.008856):
-            out[i] = 7.787*x[i] + 16./116.
-        else:
-            out[i] = x[i]**(1/3)
-            print out,x[i]
-    return out
 
-
-def displayChroma_ab(a,b,titleFigure,numberFigure): # TO BE DONE
+def displayChroma_ab(a,b,titleFigure,numberFigure): 
     '''
         Display ab data in an CIE ab diagram 
     '''

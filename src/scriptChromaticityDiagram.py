@@ -14,40 +14,41 @@ import sys
 
 # Create a 3D grid of RGB data
 
-vecGrid = np.hstack([np.arange(0,255,50),255])
-R,G,B = create3Dgrid(vecGrid)
-RGB = np.transpose(np.hstack([R,G,B]))/255
-print RGB, np.shape(RGB)
+#vecGrid = np.hstack([np.arange(0,255,10),255])
+#R,G,B = create3Dgrid(vecGrid)
+#RGB = np.transpose(np.hstack([R,G,B]))/255
+#print RGB, np.shape(RGB)
 
-RGB = np.array([[255,  255,   255,     0,   255,     0,     0, 50],
-                [255,  255,     0,   255,     0,   255,     0, 150],
-                [255,    0,   255,   255,     0,     0,   255, 50]])
-print RGB, np.shape(RGB)
-
+RGB = np.array([[255,  255,   255,     0,   255,     0,     0,  50, 0],
+                [255,  255,     0,   255,     0,   255,     0, 150, 0],
+                [255,    0,   255,   255,     0,     0,   255,  50, 0]])
+#print RGB, np.shape(RGB)
 
 # Convert the RGB data to XYZ
 XYZ = conversionRGB2XYZ(RGB)
-print XYZ, np.shape(XYZ)
-
+print XYZ
 # Convert the XYZ data to xyz 
 xyz = conversionXYZ2xyz(XYZ)
-print 'size of the data converted: '+str(np.shape(xyz))
 
 # Display the chromaticity data xy 
 displayChroma_xy(xyz[0,:],xyz[1,:],'Une bien belle figure CIE xy',1)
 
 # Convert the XYZ data to Lab 
-Lab = conversionXYZ2Lab(XYZ*100, 'D50_31')
+Lab = conversionXYZ2Lab(XYZ, 'D50_31')
 
 # Display the chromaticity ab 
-print Lab
 displayChroma_ab(Lab[1,:],Lab[2,:],'Une bien belle figure CIE ab',2)
 
 # Don't forget this line to show all the figures
 plt.show()
 
-
-
+# To Do:
+# - add color to the graph point like the corresponding rgb color
+# - add convexhull of of Lab gamut
+# - add gamut intersection function for xy diagram
+# - add printer model
+# - add projector model
+# -  add metrics functions
 
 '''
 data = np.loadtxt("AllData_xyz1964.txt")
