@@ -7,6 +7,7 @@ the selected figure.
 '''
 
 from colorTools import *
+from colorConversion import *
 import matplotlib.pyplot as plt
 import numpy as np
 import math
