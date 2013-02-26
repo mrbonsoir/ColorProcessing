@@ -32,7 +32,8 @@ print XYZ
 xyz = conversionXYZ2xyz(XYZ)
 
 # Display the chromaticity data xy 
-displayChroma_xy(xyz[0,:],xyz[1,:],'Une bien belle figure CIE xy',1)
+displayChroma_xy(xyz[0,:],xyz[1,:],'Une bien belle figure CIE xy n''est-ce pas',1)
+plt.savefig("chromaDiagramxy.png")
 
 # Convert the XYZ data to Lab 
 Lab = conversionXYZ2Lab(XYZ, 'D50_31')
@@ -41,6 +42,7 @@ Lab = conversionXYZ2Lab(XYZ, 'D50_31')
 displayChroma_ab(Lab[1,:],Lab[2,:],'Une bien belle figure CIE ab',2)
 
 # Don't forget this line to show all the figures
+plt.savefig("chromaDiagramab.png")
 plt.show()
 
 # To Do:
