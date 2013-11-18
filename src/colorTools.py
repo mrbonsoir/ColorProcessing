@@ -8,262 +8,188 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-def create3Dgrid(vec):
-    '''
-    The function creates three vectors having the same size nbLines x 1
-    '''
-    # corresponding to 3D coordinates.
-    [u,v]=np.meshgrid(vec,vec)
-    w = np.tile(np.ones(np.shape(u)),((np.size(vec)),1))
-    u = np.tile(np.reshape(u,(np.size(u),1)),(np.size(vec),1)) 
-    v = np.tile(np.reshape(v,(np.size(v),1)),(np.size(vec),1))
+
+ACES_x = np.array([0.7347, 0, 0.0001])
+ACES_y = np.array([0.26539, 1, -0.077])
+
+REC709_x = np.array([0.64, 0.3, 0.15])
+REC709_y = np.array([0.33, 0.6, 0.06])
+
+DCIP3_x = np.array([0.68, 0.265, 0.15])
+DCIP3_y = np.array([0.32, 0.69, 0.06])
+
+REC2020_x = np.array([0.708, 0.170, 0.131])
+REC2020_y = np.array([0.292, 0.797, 0.046])
+
+
+def create_3D_grid(x):
+    """ Create a 3D grid from a vector of data in one dimension.
+    The idea is to do someting equivalent as meshgrid, but for 3D and
+    not only 2D.
+
+    Args:
+        x (float or [floats]): vector points
+
+    Output:
+        u, v, w (float or [floats]): coords
+
+    """
+   
+    [u, v] = np.meshgrid(x, x)
+    w = np.tile(np.ones(np.shape(u)),((np.size(x)),1))
+    u = np.tile(np.reshape(u,(np.size(u),1)),(np.size(x),1)) 
+    v = np.tile(np.reshape(v,(np.size(v),1)),(np.size(x),1))
                
-    for ii in np.arange(0,np.size(vec)):
-        block = w[:,ii] * vec[ii]
-        w[:,ii] = np.transpose(block)
+    for ii in np.arange(0,np.size(x)):
+        block = w[:,ii] * x[ii]
+        w[: ,ii] = np.transpose(block)
+
     w = np.reshape(np.transpose(w),(np.size(u),1))
-    return u,v,w
-
-def displayChroma_xy(x,y,titleFigure,numberFigure):
-    '''
-    Display xy data and the visual locus and some standard color gamut. 
-    sRGB, Rec709, DCIP3,ACES
-    check here for xyz values http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html#Specifications
     
-    '''
-    plt.figure(numberFigure) 
-    # choice of the CMF function to display the locus boundaries
-    CMFs = 'CIE1931'
-    if CMFs=='CIE1931':
-        data = allData_nmXYZxy1931
-        print "Thanks for choosing the CIE 1931 CMFs."
-    elif CMFs =='CIE1964':
-        data = allData_nmXYZxy1964
-        print "Thanks for choosing the CIE 1964 CMFs."
-    else:
-        print "Are you blind or what to not specify a Standard Human Observer???"
+    return u, v, w
+
+def plot_chroma_xy(x, y, types_standard_gamut=None, type_point_shape='o', color_points='gray', color_background='white',  fill=False, draw_lines=True):
+    """ Plot chromaticities xy in chromaticity diagram
+
+    Args:
+        x,y (float or [floats]): coords
+
+    kwargs:
+        type_point_shape (str): matplotlib type. Ex: 'o', 'r+'
+    
+        color_points (str): matplotlib color. Ex: green, cyan
+
+        color_background (str): color of the gamut triangle(s) background
+           
+        types_standard_gamut list(str): gamuts to display
+    
+        Available types_standard_gamut : Rec709, ACES, DCIP3, Rec2020
+    
+        drawLines (bool): draw outline
+
+        fill (bool): fill triangle
+
+    """
+    if types_standard_gamut != None: 
+        plot_standard_gamuts(types_standard_gamut, color_background, draw_lines, fill)
+    
+    plot_points(x, y, type_point_shape, color_points)
         
-    xL = data[:,1] / (data[:,1] + data[:,2] + data[:,3])
-    yL = data[:,2] / (data[:,1] + data[:,2] + data[:,3])        
-    plt.plot(xL, yL,'k-')
-    plt.plot(xL[[0, xL.size-1]], yL[[0, yL.size-1]],'k:')
-
-    # display ACES color space boundaries
-    ACES_x = np.array([0.7347, 0, 0.0001])
-    ACES_y = np.array([0.26539, 1, -0.077])
-    indexVal = np.hstack([np.arange(ACES_x.size), 0])
-    plt.plot(ACES_x[indexVal], ACES_y[indexVal],'-k')
-    plt.plot(ACES_x[0], ACES_y[0],'or',ACES_x[1], ACES_y[1],'og',ACES_x[2], ACES_y[2],'ob')
-
-    # display Rec 7097/sRGB color space boundaries
-    REC709_x = np.array([0.64, 0.3, 0.15])
-    REC709_y = np.array([0.33, 0.6, 0.06])
-    indexVal = np.hstack([np.arange(REC709_x.size), 0])
-    plt.plot(REC709_x[indexVal], REC709_y[indexVal],'-k')
-    plt.plot(REC709_x[0], REC709_y[0],'or',REC709_x[1], REC709_y[1],'og',REC709_x[2], REC709_y[2],'ob')
-
-    # display Rec 709/sRGB color space boundaries
-    DCIP3_x = np.array([0.68, 0.265, 0.15])
-    DCIP3_y = np.array([0.32,0.69,0.06])
-    indexVal = np.hstack([np.arange(DCIP3_x.size), 0])
-    plt.plot(DCIP3_x[indexVal], DCIP3_y[indexVal],'-k')
-    plt.plot(DCIP3_x[0], DCIP3_y[0],'or',DCIP3_x[1], DCIP3_y[1],'og',DCIP3_x[2], DCIP3_y[2],'ob')
-
-    # the data to be plotted 
-    plt.plot(x,y,'r.')
-    
     # some options
     plt.xlabel('chromaticity x')
     plt.ylabel('chromaticity y')
-    plt.title(titleFigure+' '+CMFs)
     plt.grid(True)
     plt.axis([-0.1, 1.1, -0.1, 1.1])
     plt.draw()
-    
-    return 1
 
-def displayChroma_ab(a,b,titleFigure,numberFigure): 
-    '''
-        Display ab data in an CIE ab diagram 
-    '''
-    plt.figure(numberFigure)
-    # the data to be plotted 
-    plt.plot(a,b,'r.')
+def plot_standard_gamuts(types, color=None, draw_lines=True, fill=False):
+    """ Plot standard gamuts
+
+    Args:
+        types list(str): gamuts to display
+        Available types : Rec709, ACES, Res2020, DCIP3
+
+    kwargs:
+        color (str): if none, 1st point--> red, 2nd --> green, 3rd -> blue
+
+        drawLines (bool): draw outline
+
+        fill (bool): fill triangle
+
+    """
+    for type in types:
+        if type == "Rec709":
+            plot_triangle(REC709_x, REC709_y, color, draw_lines, fill)
+        elif type == "ACES":
+            plot_triangle(ACES_x, ACES_y, color, draw_lines, fill)
+        elif type == "DCIP3":
+            plot_triangle(DCIP3_x, DCIP3_y, color, draw_lines, fill)
+        elif type =="Rec2020":
+            plot_triangle(REC2020_x, REC2020_y, color, draw_lines, fill)
+
+def plot_points(x, y, type='o', color='gray'):
+    """plot an xy points
+
+    Args:
+        x,y (float or [floats]): coords
+
+    kwargs:
+        type (str): matplotlib type. Ex: 'o', 'r+'
+
+        color (str): matplotlib color. Ex: green, cyan
+
+    """
+    plt.plot(x, y, type, color=color)
+
+def plot_triangle(x, y, color=None, draw_lines=True, fill=False):
+    """plot an rgb triangle in xy
+
+    Args:
+        x,y (numpy.array): [r, g, b] coords
+
+    kwargs:
+        color (str): if none, 1st point--> red, 2nd --> green, 3rd -> blue
+
+        drawLines (bool): draw outline
+
+        fill (bool): fill triangle
+
+    """
+    if fill:
+        plt.fill(x, y, color='grey', alpha='0.5')
+    if draw_lines:
+        indexVal = np.hstack([np.arange(x.size), 0])
+        plt.plot(x[indexVal], y[indexVal], '-k')
+
+    if color:
+        plt.plot(x[0], y[0], 'o', x[1], y[1], 'o', x[2], y[2], 'o',
+                 color=color)
+    else:
+        plt.plot(x[0], y[0], 'or', x[1], y[1], 'og', x[2], y[2], 'ob')
+
+def plot_spectrum_locus(data_path):
+    """ Plot standard spectrum locus
+
+    Args:
+        data_path (str): path to a file containing xyz data
+
+    """
+    data = np.loadtxt(data_path)
+    xL = data[:, 1] / (data[:, 1] + data[:, 2] + data[:, 3])
+    yL = data[:, 2] / (data[:, 1] + data[:, 2] + data[:, 3])
+    plt.plot(xL, yL, 'k-')
+    plt.plot(xL[[0, xL.size-1]], yL[[0, yL.size-1]], 'k:')
+
+def plot_spectrum_locus_31():
+    """ Plot CIE1931 spectrum locus
+
+    """
+    plot_spectrum_locus("AllData_xyz1931.txt")
+
+def plot_spectrum_locus_64():
+    """ Plot CIE1964 spectrum locus
+
+    """
+    plot_spectrum_locus("AllData_xyz1964.x")
+
+
+def displayChroma_ab(a, b, type_point_shape='o', color_points='gray'):
+    """ Plot chromaticities ab in ab chromaticity diagram
+
+    Args:
+        a, b (float or [floats]): coords
+
+    kwargs:
+        type_point_shape (str): matplotlib type. Ex: 'o', 'r+'
+    
+        color_points (str): matplotlib color. Ex: green, cyan
+    
+    """
+    plot_points(a, b, type_point_shape, color_points)   
         
     # some options
     plt.xlabel('chromaticity a')
     plt.ylabel('chromaticity b')
-    plt.title(titleFigure)
     plt.grid(True)
     plt.axis([-180, 180, -180, 180])
     plt.draw()
-    return 1
-
-allData_nmXYZxy1931 = np.array([[780,    0.0000420,    0.0000150,    0.0000000,    0.7346900],
-[380,    0.0013680,    0.0000390,    0.0064500,    0.1741100],
-[385,    0.0022360,    0.0000640,    0.0105500,    0.1740100],
-[390,    0.0042430,    0.0001200,    0.0200500,    0.1738000],
-[395,    0.0076500,    0.0002170,    0.0362100,    0.1735600],
-[400,    0.0143100,    0.0003960,    0.0678500,    0.1733400],
-[405,    0.0231900,    0.0006400,    0.1102000,    0.1730200],
-[410,    0.0435100,    0.0012100,    0.2074000,    0.1725800],
-[415,    0.0776300,    0.0021800,    0.3713000,    0.1720900],
-[420,    0.1343800,    0.0040000,    0.6456000,    0.1714100],
-[425,    0.2147700,    0.0073000,    1.0390500,    0.1703000],
-[430,    0.2839000,    0.0116000,    1.3856000,    0.1688800],
-[435,    0.3285000,    0.0168400,    1.6229600,    0.1669000],
-[440,    0.3482800,    0.0230000,    1.7470600,    0.1644100],
-[445,    0.3480600,    0.0298000,    1.7826000,    0.1611000],
-[450,    0.3362000,    0.0380000,    1.7721100,    0.1566400],
-[455,    0.3187000,    0.0480000,    1.7441000,    0.1509900],
-[460,    0.2908000,    0.0600000,    1.6692000,    0.1439600],
-[465,    0.2511000,    0.0739000,    1.5281000,    0.1355000],
-[470,    0.1953600,    0.0909800,    1.2876400,    0.1241200],
-[475,    0.1421000,    0.1126000,    1.0419000,    0.1095900],
-[480,    0.0956400,    0.1390200,    0.8129500,    0.0912900],
-[485,    0.0579500,    0.1693000,    0.6162000,    0.0687100],
-[490,    0.0320100,    0.2080200,    0.4651800,    0.0453900],
-[495,    0.0147000,    0.2586000,    0.3533000,    0.0234600],
-[500,    0.0049000,    0.3230000,    0.2720000,    0.0081700],
-[505,    0.0024000,    0.4073000,    0.2123000,    0.0038600],
-[510,    0.0093000,    0.5030000,    0.1582000,    0.0138700],
-[515,    0.0291000,    0.6082000,    0.1117000,    0.0388500],
-[520,    0.0632700,    0.7100000,    0.0782500,    0.0743000],
-[525,    0.1096000,    0.7932000,    0.0572500,    0.1141600],
-[530,    0.1655000,    0.8620000,    0.0421600,    0.1547200],
-[535,    0.2257500,    0.9148500,    0.0298400,    0.1928800],
-[540,    0.2904000,    0.9540000,    0.0203000,    0.2296200],
-[545,    0.3597000,    0.9803000,    0.0134000,    0.2657800],
-[550,    0.4334500,    0.9949500,    0.0087500,    0.3016000],
-[555,    0.5120500,    1.0000000,    0.0057500,    0.3373600],
-[560,    0.5945000,    0.9950000,    0.0039000,    0.3731000],
-[565,    0.6784000,    0.9786000,    0.0027500,    0.4087400],
-[570,    0.7621000,    0.9520000,    0.0021000,    0.4440600],
-[575,    0.8425000,    0.9154000,    0.0018000,    0.4787700],
-[580,    0.9163000,    0.8700000,    0.0016500,    0.5124900],
-[585,    0.9786000,    0.8163000,    0.0014000,    0.5447900],
-[590,    1.0263000,    0.7570000,    0.0011000,    0.5751500],
-[595,    1.0567000,    0.6949000,    0.0010000,    0.6029300],
-[600,    1.0622000,    0.6310000,    0.0008000,    0.6270400],
-[605,    1.0456000,    0.5668000,    0.0006000,    0.6482300],
-[610,    1.0026000,    0.5030000,    0.0003400,    0.6657600],
-[615,    0.9384000,    0.4412000,    0.0002400,    0.6800800],
-[620,    0.8544500,    0.3810000,    0.0001900,    0.6915000],
-[625,    0.7514000,    0.3210000,    0.0001000,    0.7006100],
-[630,    0.6424000,    0.2650000,    0.0000500,    0.7079200],
-[635,    0.5419000,    0.2170000,    0.0000300,    0.7140300],
-[640,    0.4479000,    0.1750000,    0.0000200,    0.7190300],
-[645,    0.3608000,    0.1382000,    0.0000100,    0.7230300],
-[650,    0.2835000,    0.1070000,    0.0000000,    0.7259900],
-[655,    0.2187000,    0.0816000,    0.0000000,    0.7282700],
-[660,    0.1649000,    0.0610000,    0.0000000,    0.7299700],
-[665,    0.1212000,    0.0445800,    0.0000000,    0.7310900],
-[670,    0.0874000,    0.0320000,    0.0000000,    0.7319900],
-[675,    0.0636000,    0.0232000,    0.0000000,    0.7327200],
-[680,    0.0467700,    0.0170000,    0.0000000,    0.7334200],
-[685,    0.0329000,    0.0119200,    0.0000000,    0.7340500],
-[690,    0.0227000,    0.0082100,    0.0000000,    0.7343900],
-[695,    0.0158400,    0.0057230,    0.0000000,    0.7345900],
-[700,    0.0113590,    0.0041020,    0.0000000,    0.7346900],
-[705,    0.0081110,    0.0029290,    0.0000000,    0.7346900],
-[710,    0.0057900,    0.0020910,    0.0000000,    0.7346900],
-[715,    0.0041090,    0.0014840,    0.0000000,    0.7346900],
-[720,    0.0028990,    0.0010470,    0.0000000,    0.7346900],
-[725,    0.0020490,    0.0007400,    0.0000000,    0.7346900],
-[730,    0.0014400,    0.0005200,    0.0000000,    0.7346900],
-[735,    0.0010000,    0.0003610,    0.0000000,    0.7346900],
-[740,    0.0006900,    0.0002490,    0.0000000,    0.7346900],
-[745,    0.0004760,    0.0001720,    0.0000000,    0.7346900],
-[750,    0.0003320,    0.0001200,    0.0000000,    0.7346900],
-[755,    0.0002350,    0.0000850,    0.0000000,    0.7346900],
-[760,    0.0001660,    0.0000600,    0.0000000,    0.7346900],
-[765,    0.0001170,    0.0000420,    0.0000000,    0.7346900],
-[770,    0.0000830,    0.0000300,    0.0000000,    0.7346900],
-[775,    0.0000590,    0.0000210,    0.0000000,    0.7346900],
-[780,    0.0000420,    0.0000150,    0.0000000,    0.7346900]])
-
-# All CMF function for standard observer 1964
-# nm Xbar Ybar Zbar x y
-allData_nmXYZxy1964 = np.array([
-[780,    0.0000330,    0.0000130,    0.0000000,    0.7160600],
-[380,    0.0001600,    0.0000170,    0.0007050,    0.1813300],
-[385,    0.0006620,    0.0000720,    0.0029280,    0.1809100],
-[390,    0.0023620,    0.0002530,    0.0104820,    0.1803100],
-[395,    0.0072420,    0.0007690,    0.0323440,    0.1794700],
-[400,    0.0191100,    0.0020040,    0.0860110,    0.1783900],
-[405,    0.0434000,    0.0045090,    0.1971200,    0.1771200],
-[410,    0.0847360,    0.0087560,    0.3893660,    0.1754900],
-[415,    0.1406380,    0.0144560,    0.6567600,    0.1732300],
-[420,    0.2044920,    0.0213910,    0.9725420,    0.1706300],
-[425,    0.2647370,    0.0294970,    1.2825000,    0.1679000],
-[430,    0.3146790,    0.0386760,    1.5534800,    0.1650300],
-[435,    0.3577190,    0.0496020,    1.7985000,    0.1621700],
-[440,    0.3837340,    0.0620770,    1.9672800,    0.1590200],
-[445,    0.3867260,    0.0747040,    2.0273000,    0.1553900],
-[450,    0.3707020,    0.0894560,    1.9948000,    0.1510000],
-[455,    0.3429570,    0.1062560,    1.9007000,    0.1459400],
-[460,    0.3022730,    0.1282010,    1.7453700,    0.1389200],
-[465,    0.2540850,    0.1527610,    1.5549000,    0.1295200],
-[470,    0.1956180,    0.1851900,    1.3175600,    0.1151800],
-[475,    0.1323490,    0.2199400,    1.0302000,    0.0957300],
-[480,    0.0805070,    0.2535890,    0.7721250,    0.0727800],
-[485,    0.0410720,    0.2976650,    0.5700600,    0.0451900],
-[490,    0.0161720,    0.3391330,    0.4152540,    0.0209900],
-[495,    0.0051320,    0.3953790,    0.3023560,    0.0073000],
-[500,    0.0038160,    0.4607770,    0.2185020,    0.0055900],
-[505,    0.0154440,    0.5313600,    0.1592490,    0.0218700],
-[510,    0.0374650,    0.6067410,    0.1120440,    0.0495400],
-[515,    0.0713580,    0.6856600,    0.0822480,    0.0850200],
-[520,    0.1177490,    0.7617570,    0.0607090,    0.1252400],
-[525,    0.1729530,    0.8233300,    0.0430500,    0.1664100],
-[530,    0.2364910,    0.8752110,    0.0304510,    0.2070600],
-[535,    0.3042130,    0.9238100,    0.0205840,    0.2436400],
-[540,    0.3767720,    0.9619880,    0.0136760,    0.2785900],
-[545,    0.4515840,    0.9822000,    0.0079180,    0.3132300],
-[550,    0.5298260,    0.9917610,    0.0039880,    0.3473000],
-[555,    0.6160530,    0.9991100,    0.0010910,    0.3811600],
-[560,    0.7052240,    0.9973400,    0.0000000,    0.4142100],
-[565,    0.7938320,    0.9823800,    0.0000000,    0.4469200],
-[570,    0.8786550,    0.9555520,    0.0000000,    0.4790400],
-[575,    0.9511620,    0.9151750,    0.0000000,    0.5096400],
-[580,    1.0141600,    0.8689340,    0.0000000,    0.5385600],
-[585,    1.0743000,    0.8256230,    0.0000000,    0.5654400],
-[590,    1.1185200,    0.7774050,    0.0000000,    0.5899600],
-[595,    1.1343000,    0.7203530,    0.0000000,    0.6116000],
-[600,    1.1239900,    0.6583410,    0.0000000,    0.6306300],
-[605,    1.0891000,    0.5938780,    0.0000000,    0.6471300],
-[610,    1.0304800,    0.5279630,    0.0000000,    0.6612200],
-[615,    0.9507400,    0.4618340,    0.0000000,    0.6730600],
-[620,    0.8562970,    0.3980570,    0.0000000,    0.6826600],
-[625,    0.7549300,    0.3395540,    0.0000000,    0.6897600],
-[630,    0.6474670,    0.2834930,    0.0000000,    0.6954800],
-[635,    0.5351100,    0.2282540,    0.0000000,    0.7009900],
-[640,    0.4315670,    0.1798280,    0.0000000,    0.7058700],
-[645,    0.3436900,    0.1402110,    0.0000000,    0.7102500],
-[650,    0.2683290,    0.1076330,    0.0000000,    0.7137100],
-[655,    0.2043000,    0.0811870,    0.0000000,    0.7156200],
-[660,    0.1525680,    0.0602810,    0.0000000,    0.7167900],
-[665,    0.1122100,    0.0440960,    0.0000000,    0.7178900],
-[670,    0.0812610,    0.0318000,    0.0000000,    0.7187300],
-[675,    0.0579300,    0.0226020,    0.0000000,    0.7193400],
-[680,    0.0408510,    0.0159050,    0.0000000,    0.7197600],
-[685,    0.0286230,    0.0111300,    0.0000000,    0.7200200],
-[690,    0.0199410,    0.0077490,    0.0000000,    0.7201600],
-[695,    0.0138420,    0.0053750,    0.0000000,    0.7203000],
-[700,    0.0095770,    0.0037180,    0.0000000,    0.7203600],
-[705,    0.0066050,    0.0025650,    0.0000000,    0.7203200],
-[710,    0.0045530,    0.0017680,    0.0000000,    0.7202300],
-[715,    0.0031450,    0.0012220,    0.0000000,    0.7200900],
-[720,    0.0021750,    0.0008460,    0.0000000,    0.7199100],
-[725,    0.0015060,    0.0005860,    0.0000000,    0.7196900],
-[730,    0.0010450,    0.0004070,    0.0000000,    0.7194500],
-[735,    0.0007270,    0.0002840,    0.0000000,    0.7191900],
-[740,    0.0005080,    0.0001990,    0.0000000,    0.7189100],
-[745,    0.0003560,    0.0001400,    0.0000000,    0.7186100],
-[750,    0.0002510,    0.0000980,    0.0000000,    0.7182900],
-[755,    0.0001780,    0.0000700,    0.0000000,    0.7179600],
-[760,    0.0001260,    0.0000500,    0.0000000,    0.7176100],
-[765,    0.0000900,    0.0000360,    0.0000000,    0.7172400],
-[770,    0.0000650,    0.0000250,    0.0000000,    0.7168600],
-[775,    0.0000460,    0.0000180,    0.0000000,    0.7164600],
-[780,    0.0000330,    0.0000130,    0.0000000,    0.7160600]])
