@@ -1,9 +1,8 @@
-'''        
-Created on 16.01.2013
-here I want to display the chromaticity diagram of CIE 1931
-
-I did not find a ways to close all the figure window when starting the script or to refresh only 
-the selected figure.
+'''     
+18.12.2013   
+A tiny script tp test the various functions in colorTools and colorConversion 
+modules.
+Jeremie Gerhardt
 '''
 
 from colorTools import *
@@ -14,54 +13,29 @@ import math
 import sys
 
 # Create a 3D grid of RGB data
-
-#vecGrid = np.hstack([np.arange(0,255,10),255])
-#R,G,B = create3Dgrid(vecGrid)
-#RGB = np.transpose(np.hstack([R,G,B]))/255
-#print RGB, np.shape(RGB)
-
-RGB = np.array([[255,  255,   255,     0,   255,     0,     0,  50, 0],
-                [255,  255,     0,   255,     0,   255,     0, 150, 0],
-                [255,    0,   255,   255,     0,     0,   255,  50, 0]])
-#print RGB, np.shape(RGB)
+vec_grid = np.hstack([np.arange(0,255,92),255])
+R,G,B    = create_3D_grid(vec_grid)
+data_RGB = np.transpose(np.hstack([R,G,B]))/255
+print 'Your grid of data is made of '+str(np.shape(data_RGB)[1])+' points.'
+print 'And each point has '+str(np.shape(data_RGB)[0])+' coordinates.'
 
 # Convert the RGB data to XYZ
-XYZ = conversionRGB2XYZ(RGB)
-print XYZ
+data_XYZ = conversion_RGB_to_XYZ(data_RGB)
+
 # Convert the XYZ data to xyz 
-xyz = conversionXYZ2xyz(XYZ)
+data_xyz = conversion_XYZ_to_xyz(data_XYZ)
 
 # Display the chromaticity data xy 
-displayChroma_xy(xyz[0,:],xyz[1,:],'Une bien belle figure CIE xy n''est-ce pas',1)
-plt.savefig("chromaDiagramxy.png")
+fig = plt.figure()
+plot_spectrum_locus_31()
+plot_chroma_xy(data_xyz[0,:], data_xyz[1,:],['Rec709', 'Rec2020', 'ACES'], color_points="magenta", color_background="red", fill=True)
+plt.savefig("chroma_diagram_xy.png")
 
 # Convert the XYZ data to Lab 
-Lab = conversionXYZ2Lab(XYZ, 'D50_31')
+data_Lab = conversion_XYZ_to_Lab(data_XYZ, 'D65_31')
 
 # Display the chromaticity ab 
-displayChroma_ab(Lab[1,:],Lab[2,:],'Une bien belle figure CIE ab',2)
-
-# Don't forget this line to show all the figures
-plt.savefig("chromaDiagramab.png")
+fig = plt.figure()
+displayChroma_ab(data_Lab[1,:],data_Lab[2,:])
+plt.savefig("chroma_diagram_ab.png")
 plt.show()
-
-# To Do:
-# - add color to the graph point like the corresponding rgb color
-# - add convexhull of of Lab gamut
-# - add gamut intersection function for xy diagram
-# - add printer model
-# - add projector model
-# -  add metrics functions
-
-'''
-data = np.loadtxt("AllData_xyz1964.txt")
-fileNameOutput = "tempData"
-f = open('C:/WorkInPython/ColorProcessing/src/'+fileNameOutput+'.txt', 'w')
-f.write('data=np.array([')
-for i in np.arange(0,data.shape[0])-1:
-    l = '['+'{:0.0f}'.format(data[i,0])+',\t'+'{:0.7f}'.format(data[i,1])+',\t'+'{:0.7f}'.format(data[i,2])+',\t'+'{:0.7f}'.format(data[i,3])+',\t'+'{:0.7f}'.format(data[i,4])+'],\n' 
-    f.write(l)
-l = '['+'{:0.0f}'.format(data[-1,0])+',\t'+'{:0.7f}'.format(data[-1,1])+',\t'+'{:0.7f}'.format(data[-1,2])+',\t'+'{:0.7f}'.format(data[-1,3])+',\t'+'{:0.7f}'.format(data[-1,4])+']'
-f.write(l)
-f.write('])')
-f.close()'''
