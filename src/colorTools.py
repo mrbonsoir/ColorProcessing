@@ -170,7 +170,7 @@ def plot_spectrum_locus_64():
     """ Plot CIE1964 spectrum locus
 
     """
-    plot_spectrum_locus("AllData_xyz1964.x")
+    plot_spectrum_locus("AllData_xyz1964.txt")
 
 
 def displayChroma_ab(a, b, type_point_shape='o', color_points='gray'):
