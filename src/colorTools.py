@@ -8,6 +8,10 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 19ef348d1e94136d2ddd84264f07d361254b1197
 ACES_x = np.array([0.7347, 0, 0.0001])
 ACES_y = np.array([0.26539, 1, -0.077])
 
@@ -21,6 +25,35 @@ REC2020_x = np.array([0.708, 0.170, 0.131])
 REC2020_y = np.array([0.292, 0.797, 0.046])
 
 
+<<<<<<< HEAD
+=======
+def create_3D_grid(x):
+    """ Create a 3D grid from a vector of data in one dimension.
+    The idea is to do someting equivalent as meshgrid, but for 3D and
+    not only 2D.
+
+    Args:
+        x (float or [floats]): vector points
+
+    Output:
+        u, v, w (float or [floats]): coords
+
+    """
+   
+    [u, v] = np.meshgrid(x, x)
+    w = np.tile(np.ones(np.shape(u)),((np.size(x)),1))
+    u = np.tile(np.reshape(u,(np.size(u),1)),(np.size(x),1)) 
+    v = np.tile(np.reshape(v,(np.size(v),1)),(np.size(x),1))
+               
+    for ii in np.arange(0,np.size(x)):
+        block = w[:,ii] * x[ii]
+        w[: ,ii] = np.transpose(block)
+
+    w = np.reshape(np.transpose(w),(np.size(u),1))
+    
+    return u, v, w
+
+>>>>>>> 19ef348d1e94136d2ddd84264f07d361254b1197
 def plot_chroma_xy(x, y, types_standard_gamut=None, type_point_shape='o', color_points='gray', color_background='white',  fill=False, draw_lines=True):
     """ Plot chromaticities xy in chromaticity diagram
 
@@ -44,7 +77,10 @@ def plot_chroma_xy(x, y, types_standard_gamut=None, type_point_shape='o', color_
 
     """
     if types_standard_gamut != None: 
+<<<<<<< HEAD
         print types_standard_gamut
+=======
+>>>>>>> 19ef348d1e94136d2ddd84264f07d361254b1197
         plot_standard_gamuts(types_standard_gamut, color_background, draw_lines, fill)
     
     plot_points(x, y, type_point_shape, color_points)
@@ -121,7 +157,10 @@ def plot_triangle(x, y, color=None, draw_lines=True, fill=False):
     else:
         plt.plot(x[0], y[0], 'or', x[1], y[1], 'og', x[2], y[2], 'ob')
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 19ef348d1e94136d2ddd84264f07d361254b1197
 def plot_spectrum_locus(data_path):
     """ Plot standard spectrum locus
 
@@ -156,9 +195,15 @@ def displayChroma_ab(a, b, type_point_shape='o', color_points='gray'):
 
     kwargs:
         type_point_shape (str): matplotlib type. Ex: 'o', 'r+'
+<<<<<<< HEAD
     
         color_points (str): matplotlib color. Ex: green, cyan
     
+=======
+    
+        color_points (str): matplotlib color. Ex: green, cyan
+    
+>>>>>>> 19ef348d1e94136d2ddd84264f07d361254b1197
     """
     plot_points(a, b, type_point_shape, color_points)   
         
@@ -168,6 +213,7 @@ def displayChroma_ab(a, b, type_point_shape='o', color_points='gray'):
     plt.grid(True)
     plt.axis([-180, 180, -180, 180])
     plt.draw()
+<<<<<<< HEAD
 
 
 def create_3D_grid(x):
@@ -195,3 +241,5 @@ def create_3D_grid(x):
     w = np.reshape(np.transpose(w),(np.size(u),1))
     
     return u, v, w
+=======
+>>>>>>> 19ef348d1e94136d2ddd84264f07d361254b1197
